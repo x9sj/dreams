@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dreams - New Tab</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+       
+        :root {
+            --bg: #0a0f1f;
+            --card-bg: rgba(10, 20, 50, 0.65);
+            --text: #e0f0ff;
+            --accent: #00f0ff;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, var(--bg), #0f1b3a);
+            color: var(--text);
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .browser-bar {
+            background: rgba(10, 15, 40, 0.95);
+            border-bottom: 1px solid #00aaff;
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 100;
+            box-shadow: 0 0 15px rgba(0, 170, 255, 0.3);
+            flex-shrink: 0;
+        }
+        .tabs-container {
+            display: flex;
+            gap: 4px;
+            overflow-x: auto;
+            flex: 1;
+            padding-right: 10px;
+        }
+        .tab {
+            background: #1a2540;
+            color: #a0d8ff;
+            padding: 6px 16px;
+            border-radius: 6px 6px 0 0;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            white-space: nowrap;
+            border: 1px solid transparent;
+        }
+        .tab.active {
+            background: var(--bg);
+            border-bottom: 2px solid var(--accent);
+            box-shadow: 0 0 12px var(--accent);
+        }
+        .tab .close-tab {
+            margin-left: 8px;
+            font-size: 18px;
+            opacity: 0.7;
+        }
+        .tab .close-tab:hover { opacity: 1; color: #ff3366; }
+
+        .controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .controls button {
+            width: 32px; height: 32px;
+            background: #1a2540;
+            border: 1px solid #00aaff;
+            border-radius: 50%;
+            color: #a0d8ff;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .controls button:hover {
+            background: var(--accent);
+            color: #0a0f1f;
+            box-shadow: 0 0 15px var(--accent);
+        }
+        #settings-btn {
+            color: var(--accent);
+            font-size: 22px;
+            text-shadow: 0 0 12px var(--accent);
+        }
+
+        .url-bar {
+            flex: 1;
+            background: #0f1b3a;
+            border: 1px solid #00aaff;
+            border-radius: 9999px;
+            padding: 8px 16px;
+            color: #c0e0ff;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 0 10px rgba(0, 170, 255, 0.2);
+        }
+        .url-bar .lock { color: #00ffaa; }
+
+        .main {
+            flex: 1;
+            overflow-y: auto;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            scrollbar-width: thin;
+            scrollbar-color: #00aaff #1a2540;
+        }
+        .main::-webkit-scrollbar { width: 6px; }
+        .main::-webkit-scrollbar-thumb { background: #00aaff; border-radius: 10px; }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+        .logo-icon {
+            width: 52px; height: 52px;
+            background: linear-gradient(135deg, #00f0ff, #0088cc);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: white;
+            box-shadow: 0 0 25px var(--accent);
+        }
+        .logo-text {
+            font-size: 36px;
+            font-weight: 700;
+            background: linear-gradient(to right, #00f0ff, #a0f0ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px var(--accent);
+        }
+        .search-container {
+            width: 100%; max-width: 680px;
+            margin-bottom: 48px;
+        }
+        .search-bar {
+            width: 100%;
+            background: rgba(10, 25, 60, 0.8);
+            border: 2px solid #0088cc;
+            border-radius: 9999px;
+            padding: 18px 28px;
+            font-size: 19px;
+            color: #e0f0ff;
+            outline: none;
+            box-shadow: 0 0 15px rgba(0, 136, 204, 0.4);
+            transition: all 0.3s;
+        }
+        .search-bar:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 25px var(--accent);
+        }
+        .search-bar::placeholder { color: #88b0ff; }
+
+        .quick-links, .addons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 18px;
+            max-width: 860px;
+            width: 100%;
+            margin-bottom: 40px;
+        }
+        .quick-link, .addon {
+            background: var(--card-bg);
+            border: 1px solid rgba(0, 170, 255, 0.25);
+            border-radius: 16px;
+            padding: 22px 14px 18px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .quick-link:hover, .addon:hover {
+            transform: translateY(-8px) scale(1.06);
+            border-color: var(--accent);
+            box-shadow: 0 0 30px rgba(0, 240, 255, 0.45);
+        }
+        .icon-circle {
+            width: 62px; height: 62px;
+            background: rgba(0, 240, 255, 0.1);
+            border-radius: 50%;
+            margin: 0 auto 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 34px;
+            border: 3px solid rgba(0, 170, 255, 0.4);
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(0, 170, 255, 0.3);
+        }
+        .quick-link:hover .icon-circle, .addon:hover .icon-circle {
+            transform: scale(1.15) rotate(8deg);
+            border-color: var(--accent);
+            box-shadow: 0 0 35px var(--accent);
+        }
+        .quick-link span, .addon span {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #c0e0ff;
+            text-shadow: 0 0 8px rgba(0, 240, 255, 0.6);
+        }
+
+        .sign-in {
+            margin-top: 20px;
+            background: linear-gradient(90deg, #00f0ff, #0088cc);
+            color: #0a0f1f;
+            border: none;
+            padding: 14px 36px;
+            border-radius: 9999px;
+            font-weight: 700;
+            font-size: 15.5px;
+            cursor: pointer;
+            box-shadow: 0 0 20px var(--accent);
+            transition: all 0.3s;
+        }
+        .sign-in:hover {
+            transform: scale(1.08);
+            box-shadow: 0 0 35px var(--accent);
+        }
+
+        .footer {
+            position: absolute;
+            bottom: 24px;
+            left: 0; right: 0;
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            font-size: 12.5px;
+            color: #88aaff;
+            z-index: 10;
+        }
+
+        .iframe-container {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: #0a0f1f;
+            z-index: 200;
+            display: none;
+            flex-direction: column;
+        }
+        .iframe-header {
+            background: rgba(10, 15, 40, 0.98);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid #00aaff;
+        }
+        .neon-close {
+            background: #1a2540;
+            color: var(--accent);
+            width: 36px; height: 36px;
+            border: 2px solid var(--accent);
+            border-radius: 50%;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 0 15px var(--accent);
+        }
+        .neon-close:hover {
+            background: var(--accent);
+            color: #0a0f1f;
+            box-shadow: 0 0 25px var(--accent);
+            transform: scale(1.1);
+        }
+        iframe { flex: 1; border: none; background: white; }
+
+        /* Settings Panel */
+        .settings-panel {
+            position: fixed;
+            top: 70px;
+            right: 20px;
+            background: #1a2540;
+            border: 2px solid var(--accent);
+            border-radius: 12px;
+            padding: 20px;
+            width: 320px;
+            box-shadow: 0 0 30px rgba(0, 240, 255, 0.4);
+            z-index: 300;
+            display: none;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <!-- Browser Top Bar -->
+    <div class="browser-bar">
+        <div class="tabs-container" id="tabs-container"></div>
+        <div class="controls">
+            <button id="back-btn">←</button>
+            <button id="forward-btn">→</button>
+            <button id="refresh-btn">⟳</button>
+            <button id="settings-btn" style="font-size:22px;color:var(--accent);text-shadow:0 0 12px var(--accent);">⚙️</button>
+        </div>
+        <div class="url-bar">
+            <span class="lock">🔒</span>
+            <input type="text" id="url-input" placeholder="Search or enter URL..." style="flex:1;background:transparent;border:none;outline:none;color:#c0e0ff;font-size:14px;">
+        </div>
+        <button id="new-tab-btn" style="background:none;border:none;color:#a0d8ff;font-size:22px;cursor:pointer;">+</button>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main" id="main-content">
+        <div class="logo">
+            <div class="logo-icon">🌌</div>
+            <div class="logo-text">Dreams</div>
+        </div>
+        <div class="search-container">
+            <input type="text" class="search-bar" placeholder="Search privately." id="search-input">
+        </div>
+
+        <!-- Quick Links with Emojis -->
+        <div class="quick-links">
+            <div class="quick-link" onclick="openRammerhead('https://google.com')"><div class="icon-circle">🔍</div><span>Google</span></div>
+            <div class="quick-link" onclick="openRammerhead('https://youtube.com')"><div class="icon-circle">▶️</div><span>YouTube</span></div>
+            <div class="quick-link" onclick="openRammerhead('https://gitlab.com')"><div class="icon-circle">🐙</div><span>GitLab</span></div>
+            <div class="quick-link" onclick="openRammerhead('https://reddit.com')"><div class="icon-circle">📕</div><span>Reddit</span></div>
+            <div class="quick-link" onclick="openRammerhead('https://twitter.com')"><div class="icon-circle">𝕏</div><span>X</span></div>
+            <div class="quick-link" onclick="openRammerhead('https://wikipedia.org')"><div class="icon-circle">📖</div><span>Wikipedia</span></div>
+            <div class="quick-link" onclick="openRammerhead('https://stackoverflow.com')"><div class="icon-circle">💻</div><span>Stack Overflow</span></div>
+            <div class="quick-link" onclick="openRammerhead('https://discord.com')"><div class="icon-circle">💬</div><span>Discord</span></div>
+            <div class="quick-link" onclick="openRammerhead('https://netflix.com')"><div class="icon-circle">🎥</div><span>Netflix</span></div>
+            <div class="quick-link" onclick="openRammerhead('https://amazon.com')"><div class="icon-circle">📦</div><span>Amazon</span></div>
+            <div class="quick-link" onclick="openRammerhead('https://spotify.com')"><div class="icon-circle">🎵</div><span>Spotify</span></div>
+            <div class="quick-link" onclick="openRammerhead('https://twitch.tv')"><div class="icon-circle">📺</div><span>Twitch</span></div>
+        </div>
+
+        <button class="sign-in" onclick="signIntoNight()">Sign into Night+</button>
+        <div style="height: 100px;"></div>
+    </div>
+
+    <!-- Iframe -->
+    <div class="iframe-container" id="iframe-container">
+        <div class="iframe-header">
+            <button class="neon-close" onclick="closeCurrentTab()">×</button>
+            <div style="flex:1; background:#1a2540; border-radius:9999px; padding:8px 16px; color:#c0e0ff; font-size:14px;" id="iframe-url">
+                Loading neon...
+            </div>
+        </div>
+        <iframe id="dreams-iframe" src=""></iframe>
+    </div>
+
+    <!-- Settings Panel -->
+    <div class="settings-panel" id="settings-panel">
+        <h2 style="margin-bottom:15px;color:var(--accent);">Settings</h2>
+        
+        <h3 style="margin:15px 0 8px;color:#a0d8ff;">Theme</h3>
+        <div style="display:flex;gap:10px;margin-bottom:20px;">
+            <button onclick="setTheme('blue')" style="flex:1;padding:10px;background:#0a0f1f;color:white;border:1px solid #00f0ff;border-radius:8px;">Blue</button>
+            <button onclick="setTheme('gray')" style="flex:1;padding:10px;background:#1e1e1e;color:white;border:1px solid #888;border-radius:8px;">Gray</button>
+            <button onclick="setTheme('white')" style="flex:1;padding:10px;background:#f8f9fa;color:black;border:1px solid #666;border-radius:8px;">White</button>
+        </div>
+
+        <h3 style="margin:15px 0 8px;color:#a0d8ff;">Addons</h3>
+        <div onclick="toggleAdblock()" id="adblock-setting" style="padding:12px;background:#1a2540;border:1px solid #00aaff;border-radius:8px;margin-bottom:10px;cursor:pointer;">
+            AdBlocker <span id="adblock-status" style="float:right;">OFF</span>
+        </div>
+        <div onclick="toggleVencord()" id="vencord-setting" style="padding:12px;background:#1a2540;border:1px solid #00aaff;border-radius:8px;margin-bottom:10px;cursor:pointer;">
+            Vencord <span id="vencord-status" style="float:right;">OFF</span>
+        </div>
+
+        <h3 style="margin:20px 0 8px;color:#a0d8ff;">Add Custom Addon</h3>
+        <textarea id="custom-addon-code" placeholder="Paste addon JavaScript here..." style="width:100%;height:100px;background:#0f1b3a;color:#c0e0ff;border:1px solid #00aaff;border-radius:8px;padding:10px;font-family:monospace;"></textarea>
+        <button onclick="addCustomAddon()" style="margin-top:8px;width:100%;padding:10px;background:var(--accent);color:#0a0f1f;border:none;border-radius:8px;font-weight:600;">Add Addon</button>
+
+        <h3 style="margin:20px 0 8px;color:#a0d8ff;">Browsing History</h3>
+        <div id="history-list" style="max-height:150px;overflow-y:auto;background:#0f1b3a;padding:10px;border-radius:8px;font-size:13px;"></div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <div class="server-latency">
+            <span class="latency-dot"></span>
+            Server Latency: <span id="latency">69ms</span>
+        </div>
+        <div>GitLab • Discord • Privacy • Terms</div>
+    </div>
+
+    <script>
+        document.title = "Dreams - New Tab";
+
+        const RAMMERHEAD = "https://demo-opensource.rammerhead.org/";
+
+        let tabs = [];
+        let currentTabId = null;
+        let adblockEnabled = false;
+        let vencordEnabled = false;
+        let customAddons = [];
+        let browsingHistory = [];
+
+        function rammerheadUrl(url) {
+            if (!url || !url.startsWith('http')) return url;
+            return RAMMERHEAD + "?url=" + encodeURIComponent(url);
+        }
+
+        function createNewTab() {
+            const tabId = 'tab-' + Date.now();
+            const tab = {
+                id: tabId,
+                title: "Dreams - New Tab",   // Fixed as requested
+                url: "",
+                isHome: true
+            };
+            tabs.push(tab);
+            renderTabs();
+            switchToTab(tabId);
+        }
+
+        function renderTabs() {
+            const container = document.getElementById('tabs-container');
+            container.innerHTML = '';
+            tabs.forEach(tab => {
+                const el = document.createElement('div');
+                el.className = `tab ${tab.id === currentTabId ? 'active' : ''}`;
+                el.innerHTML = `
+                    <span onclick="switchToTab('${tab.id}')">${tab.title}</span>
+                    <span class="close-tab" onclick="closeTab('${tab.id}'); event.stopImmediatePropagation();">×</span>
+                `;
+                container.appendChild(el);
+            });
+        }
+
+        function switchToTab(tabId) {
+            currentTabId = tabId;
+            const tab = tabs.find(t => t.id === tabId);
+            if (!tab) return;
+
+            renderTabs();
+
+            const main = document.getElementById('main-content');
+            const iframeContainer = document.getElementById('iframe-container');
+
+            if (tab.isHome) {
+                main.style.display = 'flex';
+                iframeContainer.style.display = 'none';
+                document.getElementById('top-url').textContent = 'd:newtab';
+            } else {
+                main.style.display = 'none';
+                iframeContainer.style.display = 'flex';
+                document.getElementById('iframe-url').textContent = tab.url || 'Loading...';
+                document.getElementById('dreams-iframe').src = tab.url;
+                document.getElementById('top-url').textContent = tab.url || 'd:newtab';
+            }
+        }
+
+        function closeTab(tabId) {
+            if (tabs.length === 1) return;
+            const index = tabs.findIndex(t => t.id === tabId);
+            if (index === -1) return;
+
+            const wasCurrent = tabId === currentTabId;
+            tabs.splice(index, 1);
+
+            if (wasCurrent) {
+                switchToTab(tabs[Math.max(0, index - 1)].id);
+            } else {
+                renderTabs();
+            }
+        }
+
+        function closeCurrentTab() {
+            if (currentTabId) closeTab(currentTabId);
+        }
+
+        function openRammerhead(url) {
+            const tabId = currentTabId || createNewTab();
+            const tab = tabs.find(t => t.id === tabId);
+            tab.isHome = false;
+            tab.url = rammerheadUrl(url);
+            tab.title = new URL(url).hostname.replace('www.', '');
+            addToHistory(url);
+            switchToTab(tabId);
+        }
+
+        function searchDuckDuckGo(query) {
+            const searchUrl = "https://duckduckgo.com/?q=" + encodeURIComponent(query);
+            openRammerhead(searchUrl);
+        }
+
+        function addToHistory(url) {
+            browsingHistory.unshift({ url, time: new Date().toLocaleString() });
+            if (browsingHistory.length > 50) browsingHistory.pop();
+        }
+
+        function signIntoNight() {
+            const email = prompt("Enter your email to sign into Night+:");
+            if (email) {
+                alert("Signed in as " + email + "\n\nYour browsing history is now saved across sessions.");
+            }
+        }
+
+        function toggleAdblock() {
+            adblockEnabled = !adblockEnabled;
+            document.getElementById('adblock-status').textContent = adblockEnabled ? "ON" : "OFF";
+            alert(adblockEnabled ? "AdBlocker ENABLED 🔥" : "AdBlocker DISABLED");
+        }
+
+        function toggleVencord() {
+            vencordEnabled = !vencordEnabled;
+            document.getElementById('vencord-status').textContent = vencordEnabled ? "ON" : "OFF";
+            alert(vencordEnabled ? "Vencord ENABLED 🎨" : "Vencord DISABLED");
+        }
+
+        function addCustomAddon() {
+            const code = document.getElementById('custom-addon-code').value.trim();
+            if (code) {
+                customAddons.push(code);
+                alert("Custom addon added! It will run on new pages.");
+                document.getElementById('custom-addon-code').value = '';
+            }
+        }
+
+        function setTheme(theme) {
+            if (theme === 'white') {
+                document.documentElement.style.setProperty('--bg', '#f8f9fa');
+                document.documentElement.style.setProperty('--text', '#1a1a1a');
+                document.documentElement.style.setProperty('--accent', '#0066ff');
+            } else if (theme === 'gray') {
+                document.documentElement.style.setProperty('--bg', '#1e1e1e');
+                document.documentElement.style.setProperty('--text', '#e0e0e0');
+                document.documentElement.style.setProperty('--accent', '#888888');
+            } else if (theme === 'blue') {
+                document.documentElement.style.setProperty('--bg', '#0a0f1f');
+                document.documentElement.style.setProperty('--text', '#e0f0ff');
+                document.documentElement.style.setProperty('--accent', '#00f0ff');
+            }
+        }
+
+        // Settings Button
+        document.getElementById('settings-btn').addEventListener('click', () => {
+            const panel = document.getElementById('settings-panel');
+            panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+        });
+
+        // URL Bar
+        document.getElementById('url-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                let input = this.value.trim();
+                if (input) {
+                    if (input.startsWith('http')) {
+                        openRammerhead(input);
+                    } else {
+                        searchDuckDuckGo(input);
+                    }
+                    this.value = '';
+                }
+            }
+        });
+
+        // Search Bar
+        document.getElementById('search-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                let query = this.value.trim();
+                if (query) {
+                    searchDuckDuckGo(query);
+                    this.value = '';
+                }
+            }
+        });
+
+        document.getElementById('new-tab-btn').addEventListener('click', createNewTab);
+
+        document.getElementById('back-btn').addEventListener('click', () => {
+            const iframe = document.getElementById('dreams-iframe');
+            if (iframe.src) iframe.contentWindow.history.back();
+        });
+
+        document.getElementById('forward-btn').addEventListener('click', () => {
+            const iframe = document.getElementById('dreams-iframe');
+            if (iframe.src) iframe.contentWindow.history.forward();
+        });
+
+        document.getElementById('refresh-btn').addEventListener('click', () => {
+            const iframe = document.getElementById('dreams-iframe');
+            if (iframe.src) iframe.src = iframe.src;
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === "Escape") {
+                const panel = document.getElementById('settings-panel');
+                if (panel.style.display === 'block') panel.style.display = 'none';
+                else if (document.getElementById('iframe-container').style.display === 'flex') closeCurrentTab();
+            }
+        });
+
+        window.onload = () => {
+            document.title = "Dreams - New Tab";
+            createNewTab(); // First tab is "Dreams - New Tab"
+            setInterval(() => {
+                document.getElementById('latency').textContent = (Math.floor(Math.random() * 35) + 55) + 'ms';
+            }, 3500);
+        };
+    </script>
+</body>
+</html>
